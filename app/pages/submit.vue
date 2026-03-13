@@ -103,32 +103,21 @@
             <span class="text-sm font-medium text-gray-900">{{ day.label }}</span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <Switch :checked="day.available" @update:checked="day.available = $event" />
-            <span class="text-xs text-gray-500">
-              {{ day.available ? 'Available' : 'Unavailable' }}
-            </span>
+          <div class="ml-auto flex items-center gap-2">
+            <select
+              v-model="day.startTime"
+              class="h-8 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none"
+            >
+              <option v-for="t in timeOptions" :key="t" :value="t">{{ formatTime(t) }}</option>
+            </select>
+            <span class="text-xs text-gray-400">to</span>
+            <select
+              v-model="day.endTime"
+              class="h-8 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none"
+            >
+              <option v-for="t in timeOptions" :key="t" :value="t">{{ formatTime(t) }}</option>
+            </select>
           </div>
-
-          <template v-if="day.available">
-            <div class="ml-auto flex items-center gap-2">
-              <select
-                v-model="day.startTime"
-                class="h-8 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none"
-              >
-                <option v-for="t in timeOptions" :key="t" :value="t">{{ formatTime(t) }}</option>
-              </select>
-              <span class="text-xs text-gray-400">to</span>
-              <select
-                v-model="day.endTime"
-                class="h-8 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none"
-              >
-                <option v-for="t in timeOptions" :key="t" :value="t">{{ formatTime(t) }}</option>
-              </select>
-            </div>
-          </template>
-
-          <span v-else class="ml-auto text-xs text-gray-400">&mdash;</span>
         </div>
 
         <p v-if="availError" class="text-sm text-red-600">{{ availError }}</p>
@@ -225,7 +214,6 @@ Content-Type: application/json
 <script setup lang="ts">
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -281,17 +269,16 @@ const selectedTimezone = computed(() => {
 interface DayState {
   key: string
   label: string
-  available: boolean
   startTime: string
   endTime: string
 }
 
 const days = reactive<DayState[]>([
-  { key: 'monday', label: 'Mon', available: true, startTime: '09:00', endTime: '17:00' },
-  { key: 'tuesday', label: 'Tue', available: true, startTime: '09:00', endTime: '17:00' },
-  { key: 'wednesday', label: 'Wed', available: true, startTime: '09:00', endTime: '17:00' },
-  { key: 'thursday', label: 'Thu', available: true, startTime: '09:00', endTime: '17:00' },
-  { key: 'friday', label: 'Fri', available: true, startTime: '09:00', endTime: '17:00' },
+  { key: 'monday', label: 'Mon', startTime: '09:00', endTime: '17:00' },
+  { key: 'tuesday', label: 'Tue', startTime: '09:00', endTime: '17:00' },
+  { key: 'wednesday', label: 'Wed', startTime: '09:00', endTime: '17:00' },
+  { key: 'thursday', label: 'Thu', startTime: '09:00', endTime: '17:00' },
+  { key: 'friday', label: 'Fri', startTime: '09:00', endTime: '17:00' },
 ])
 
 const timeOptions: string[] = []
@@ -318,14 +305,7 @@ async function handleSubmitAvailability() {
   availError.value = ''
   availSuccess.value = ''
 
-  const entries = days
-    .filter((d) => d.available)
-    .map((d) => ({ day: d.key, startTime: d.startTime, endTime: d.endTime }))
-
-  if (entries.length === 0) {
-    availError.value = 'Select at least one available day.'
-    return
-  }
+  const entries = days.map((d) => ({ day: d.key, startTime: d.startTime, endTime: d.endTime }))
 
   for (const entry of entries) {
     if (entry.startTime >= entry.endTime) {
