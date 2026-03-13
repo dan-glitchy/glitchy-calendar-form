@@ -15,3 +15,9 @@ export const availabilitySubmissions = sqliteTable('availability_submissions', {
 
 export type AvailabilitySubmission = typeof availabilitySubmissions.$inferSelect
 export type InsertAvailabilitySubmission = typeof availabilitySubmissions.$inferInsert
+
+export const anonymousFeedback = sqliteTable('anonymous_feedback', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  feedbackText: text('feedback_text').notNull(),
+  submittedAt: text('submitted_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+})

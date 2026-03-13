@@ -7,6 +7,12 @@ export default defineEventHandler(async (event) => {
     return
   }
 
+  // Anonymous feedback POST requires no auth
+  const method = getMethod(event)
+  if (url.pathname === '/api/feedback' && method === 'POST') {
+    return
+  }
+
   const authHeader = getHeader(event, 'authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw createError({ statusCode: 401, statusMessage: 'Missing authorization token' })

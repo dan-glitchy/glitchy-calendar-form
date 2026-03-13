@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
-import { availabilitySubmissions } from './schema'
+import { availabilitySubmissions, anonymousFeedback } from './schema'
 import { mkdirSync } from 'fs'
 import { dirname } from 'path'
 
@@ -10,7 +10,7 @@ mkdirSync(dirname(dbPath), { recursive: true })
 const sqlite = new Database(dbPath)
 sqlite.pragma('journal_mode = WAL')
 
-export const db = drizzle({ client: sqlite, schema: { availabilitySubmissions } })
+export const db = drizzle({ client: sqlite, schema: { availabilitySubmissions, anonymousFeedback } })
 
 // Create table if not exists (safe static SQL, no user input)
 const createTableSQL = `
@@ -27,3 +27,12 @@ const createTableSQL = `
   )
 `
 sqlite.prepare(createTableSQL).run()
+
+const createFeedbackTableSQL = `
+  CREATE TABLE IF NOT EXISTS anonymous_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    feedback_text TEXT NOT NULL,
+    submitted_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+  )
+`
+sqlite.prepare(createFeedbackTableSQL).run()

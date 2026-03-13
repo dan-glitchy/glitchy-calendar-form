@@ -48,6 +48,26 @@
     </div>
 
     <p class="mt-4 text-xs text-gray-400">All times shown in Eastern (America/New_York)</p>
+
+    <!-- Anonymous Feedback Section -->
+    <div class="mt-8 border-t border-gray-200 pt-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-3">Anonymous Feedback</h2>
+
+      <div v-if="feedbackItems.length === 0" class="text-sm text-gray-400">
+        No feedback submitted yet.
+      </div>
+
+      <div v-else class="space-y-3">
+        <div
+          v-for="item in feedbackItems"
+          :key="item.id"
+          class="rounded border border-gray-200 px-3 py-2"
+        >
+          <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ item.feedbackText }}</p>
+          <p class="text-xs text-gray-400 mt-1">{{ item.submittedAt }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -68,6 +88,7 @@ const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 const weekdayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 const developers = ref<DevSchedule[]>([])
 const overlaps = ref<Record<string, TimeRange | null>>({})
+const feedbackItems = ref<any[]>([])
 
 function formatTime(t: string): string {
   const [h, m] = t.split(':').map(Number)
@@ -150,5 +171,14 @@ onMounted(() => {
     return
   }
   fetchData()
+  fetchFeedback()
 })
+
+async function fetchFeedback() {
+  try {
+    feedbackItems.value = await $fetch<any[]>('/api/feedback', { headers: getHeaders() })
+  } catch {
+    // Silently fail — feedback section is supplementary
+  }
+}
 </script>
