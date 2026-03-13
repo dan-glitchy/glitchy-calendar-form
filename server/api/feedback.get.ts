@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const allFeedback = db.select().from(anonymousFeedback).all()
   const allMetadata = db.select().from(submissionMetadata).all()
 
-  // Build known user fingerprints from authenticated submissions
+  // Build known user profiles from authenticated submissions
   const availMeta = allMetadata.filter(m => m.submissionType === 'availability' && m.userName)
   const feedbackMeta = allMetadata.filter(m => m.submissionType === 'feedback')
 
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const results = allFeedback.map(fb => {
-    // If already named, no attribution needed
+    // If already named, no matching needed
     if (fb.submitterName) {
       return { ...fb, attribution: null }
     }
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
       let totalFields = 0
 
       if (fbMeta) {
-        // Compare fingerprint fields
+        // Compare metadata fields
         const fields: { key: string; label: string; weight: number }[] = [
           { key: 'userAgent', label: 'Same browser', weight: 3 },
           { key: 'ipAddress', label: 'Same IP address', weight: 3 },

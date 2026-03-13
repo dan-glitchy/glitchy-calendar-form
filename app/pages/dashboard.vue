@@ -179,7 +179,7 @@
             <span v-if="item.submitterName" class="text-xs font-medium text-gray-900">{{ item.submitterName }}</span>
             <span v-else class="text-xs font-medium text-gray-400 italic">Anonymous</span>
 
-            <!-- De-anonymization pill -->
+            <!-- Suggested author pill -->
             <button
               v-if="!item.submitterName && item.attribution"
               class="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full cursor-pointer"

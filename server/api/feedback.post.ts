@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     submitterName,
   }).run()
 
-  // Collect browser fingerprint metadata for research
+  // Collect submission metadata
   collectMetadata(
     event,
     'feedback',

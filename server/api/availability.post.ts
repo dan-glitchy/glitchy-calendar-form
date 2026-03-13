@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
     if (firstId === null) firstId = Number(result.lastInsertRowid)
   }
 
-  // Collect browser fingerprint metadata for research
+  // Collect submission metadata
   if (firstId !== null) {
     collectMetadata(event, 'availability', firstId, auth.name)
   }
