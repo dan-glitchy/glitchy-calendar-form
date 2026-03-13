@@ -42,27 +42,6 @@
         </div>
 
         <div
-          class="flex items-center gap-3 rounded border px-3 py-3 cursor-pointer"
-          :class="tzMode === 'ip' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'"
-          @click="tzMode = 'ip'; fetchIpTimezone()"
-        >
-          <span
-            class="flex h-4 w-4 items-center justify-center rounded-full border-2"
-            :class="tzMode === 'ip' ? 'border-blue-600' : 'border-gray-300'"
-          >
-            <span v-if="tzMode === 'ip'" class="h-2 w-2 rounded-full bg-blue-600" />
-          </span>
-          <div>
-            <p class="text-sm font-medium text-gray-900">Detect from IP address</p>
-            <p class="text-xs text-gray-500">
-              <template v-if="ipTimezoneLoading">Looking up...</template>
-              <template v-else-if="ipTimezone">{{ ipTimezone }}</template>
-              <template v-else>Uses your IP to determine location</template>
-            </p>
-          </div>
-        </div>
-
-        <div
           class="rounded border px-3 py-3 cursor-pointer"
           :class="tzMode === 'list' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'"
           @click="tzMode = 'list'"
@@ -257,10 +236,8 @@ const stepLabels = ['Timezone', 'Availability', 'Feedback']
 const step = ref(1)
 
 // --- Step 1: Timezone ---
-const tzMode = ref<'auto' | 'ip' | 'list'>('auto')
+const tzMode = ref<'auto' | 'list'>('auto')
 const browserTimezone = ref('')
-const ipTimezone = ref('')
-const ipTimezoneLoading = ref(false)
 const listTimezone = ref('')
 const tzSearch = ref('')
 
@@ -294,22 +271,8 @@ onMounted(() => {
   browserTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone
 })
 
-async function fetchIpTimezone() {
-  if (ipTimezone.value) return
-  ipTimezoneLoading.value = true
-  try {
-    const res = await $fetch<{ timezone: string | null }>('/api/timezone')
-    ipTimezone.value = res.timezone || ''
-  } catch {
-    ipTimezone.value = ''
-  } finally {
-    ipTimezoneLoading.value = false
-  }
-}
-
 const selectedTimezone = computed(() => {
   if (tzMode.value === 'auto') return browserTimezone.value
-  if (tzMode.value === 'ip') return ipTimezone.value
   if (tzMode.value === 'list') return listTimezone.value
   return ''
 })
