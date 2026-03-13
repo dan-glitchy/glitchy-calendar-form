@@ -19,7 +19,7 @@ logs
 .idea
 
 # Database
-db/
+/db/
 
 # Local env files
 .env
