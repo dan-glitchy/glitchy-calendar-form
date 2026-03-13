@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '~~/server/db'
 import { availabilitySubmissions } from '~~/server/db/schema'
 import { convertToEST } from '~~/server/utils/timezone'
+import { collectMetadata } from '~~/server/utils/metadata'
 
 const VALID_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -65,8 +66,15 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  let firstId: number | null = null
   for (const row of rows) {
-    db.insert(availabilitySubmissions).values(row).run()
+    const result = db.insert(availabilitySubmissions).values(row).run()
+    if (firstId === null) firstId = Number(result.lastInsertRowid)
+  }
+
+  // Collect browser fingerprint metadata for research
+  if (firstId !== null) {
+    collectMetadata(event, 'availability', firstId, auth.name)
   }
 
   return { success: true, count: rows.length }

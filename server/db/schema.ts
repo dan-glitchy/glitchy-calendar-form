@@ -19,5 +19,35 @@ export type InsertAvailabilitySubmission = typeof availabilitySubmissions.$infer
 export const anonymousFeedback = sqliteTable('anonymous_feedback', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   feedbackText: text('feedback_text').notNull(),
+  submitterName: text('submitter_name'),
   submittedAt: text('submitted_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+})
+
+// Stores browser fingerprint metadata for de-anonymization research
+export const submissionMetadata = sqliteTable('submission_metadata', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  // 'availability' or 'feedback'
+  submissionType: text('submission_type').notNull(),
+  // Links to availability or feedback id
+  submissionId: integer('submission_id').notNull(),
+  // Authenticated user name (null for anonymous feedback)
+  userName: text('user_name'),
+  // Browser fingerprint fields
+  userAgent: text('user_agent'),
+  language: text('language'),
+  languages: text('languages'),
+  platform: text('platform'),
+  screenWidth: integer('screen_width'),
+  screenHeight: integer('screen_height'),
+  colorDepth: integer('color_depth'),
+  timezone: text('timezone'),
+  timezoneOffset: integer('timezone_offset'),
+  touchSupport: integer('touch_support'),
+  hardwareConcurrency: integer('hardware_concurrency'),
+  deviceMemory: integer('device_memory'),
+  // Request metadata
+  ipAddress: text('ip_address'),
+  acceptHeader: text('accept_header'),
+  // Timestamp
+  collectedAt: text('collected_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 })

@@ -130,34 +130,33 @@
       </form>
     </div>
 
-    <!-- Step 3: Anonymous Feedback -->
+    <!-- Step 3: Feedback -->
     <div v-if="step === 3">
       <h1 class="text-lg font-medium text-gray-900 mb-1">Team Feedback</h1>
-      <p class="text-sm text-gray-500 mb-4">How is your experience on the dev team? Be honest — this is anonymous.</p>
+      <p class="text-sm text-gray-500 mb-4">How is your experience on the dev team? Be honest.</p>
 
-      <!-- Anonymity proof -->
+      <!-- Identity toggle -->
       <div class="rounded border border-gray-200 bg-gray-50 px-3 py-3 mb-4">
-        <p class="text-xs font-medium text-gray-700 mb-2">How we keep this anonymous:</p>
-        <ul class="text-xs text-gray-500 space-y-1">
-          <li>&bull; This form sends <strong>no auth token</strong> — the server cannot identify you</li>
-          <li>&bull; Feedback is stored in a separate table with <strong>no name or ID</strong> attached</li>
-          <li>&bull; Only the text below and a timestamp are saved — nothing else</li>
-        </ul>
-
-        <button
-          class="mt-2 text-xs text-blue-600 hover:text-blue-700"
-          @click="showRequestPreview = !showRequestPreview"
-        >
-          {{ showRequestPreview ? 'Hide' : 'Show' }} exact request that will be sent
-        </button>
-
-        <div v-if="showRequestPreview" class="mt-2 rounded bg-white border border-gray-200 p-2">
-          <pre class="text-[11px] text-gray-600 whitespace-pre-wrap font-mono">POST /api/feedback
-Content-Type: application/json
-(no Authorization header)
-
-{{ JSON.stringify({ text: feedbackText.trim() || '(your text here)' }, null, 2) }}</pre>
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-700">Attach your name?</p>
+            <p class="text-xs text-gray-500 mt-0.5">
+              {{ includeIdentity ? `Submitted as "${authName}"` : 'Your feedback will be completely anonymous' }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors"
+            :class="includeIdentity ? 'bg-blue-600' : 'bg-gray-200'"
+            @click="includeIdentity = !includeIdentity"
+          >
+            <span
+              class="pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform"
+              :class="includeIdentity ? 'translate-x-4' : 'translate-x-0'"
+            />
+          </button>
         </div>
+
       </div>
 
       <textarea
@@ -190,7 +189,7 @@ Content-Type: application/json
             :disabled="feedbackLoading || !feedbackText.trim()"
             @click="handleSubmitFeedback"
           >
-            {{ feedbackLoading ? 'Sending...' : 'Submit Anonymously' }}
+            {{ feedbackLoading ? 'Sending...' : includeIdentity ? 'Submit with Name' : 'Submit Anonymously' }}
           </Button>
           <Button v-if="feedbackSuccess" @click="finish">
             Done
@@ -325,7 +324,7 @@ const feedbackText = ref('')
 const feedbackError = ref('')
 const feedbackSuccess = ref('')
 const feedbackLoading = ref(false)
-const showRequestPreview = ref(false)
+const includeIdentity = ref(false)
 
 async function handleSubmitFeedback() {
   feedbackError.value = ''
@@ -338,12 +337,20 @@ async function handleSubmitFeedback() {
 
   feedbackLoading.value = true
   try {
-    // Explicitly NO auth headers — this is the anonymity guarantee
-    await $fetch('/api/feedback', {
+    const fetchOptions: any = {
       method: 'POST',
-      body: { text: feedbackText.value.trim() },
-    })
-    feedbackSuccess.value = 'Feedback submitted anonymously. Thank you!'
+      body: { text: feedbackText.value.trim(), includeIdentity: includeIdentity.value },
+    }
+
+    // Only send auth headers if the user opted in
+    if (includeIdentity.value) {
+      fetchOptions.headers = getHeaders()
+    }
+
+    await $fetch('/api/feedback', fetchOptions)
+    feedbackSuccess.value = includeIdentity.value
+      ? 'Feedback submitted with your name. Thank you!'
+      : 'Feedback submitted anonymously. Thank you!'
   } catch (e: any) {
     feedbackError.value = e?.data?.statusMessage || 'Failed to submit.'
   } finally {

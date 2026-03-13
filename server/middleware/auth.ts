@@ -7,9 +7,17 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  // Anonymous feedback POST requires no auth
+  // Feedback POST: auth is optional (used only if user opts into identity)
   const method = getMethod(event)
   if (url.pathname === '/api/feedback' && method === 'POST') {
+    const authHeader = getHeader(event, 'authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        event.context.auth = await verifyToken(authHeader.slice(7))
+      } catch {
+        // Invalid token is fine — just treat as anonymous
+      }
+    }
     return
   }
 

@@ -1,9 +1,14 @@
 <template>
-  <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+  <div class="flex flex-1 items-center justify-center" style="min-height: calc(100vh - 6rem)">
     <div class="w-full max-w-sm">
       <div class="space-y-1 mb-4">
         <h1 class="text-lg font-medium text-gray-900">Sign in</h1>
         <p class="text-sm text-gray-500">Enter your name and team access code.</p>
+      </div>
+
+      <div class="rounded border border-yellow-300 bg-yellow-50 px-3 py-2 mb-1">
+        <p class="text-sm text-yellow-800 font-medium">Please use your real, full name.</p>
+        <p class="text-xs text-yellow-700 mt-0.5">Your availability will be reviewed by project leads and management to coordinate scheduling across the team.</p>
       </div>
 
       <form class="space-y-3" @submit.prevent="handleSubmit">
@@ -53,7 +58,7 @@ async function handleSubmit() {
     setAuth(res.token, res.name, res.role)
 
     if (res.role === 'admin') {
-      navigateTo('/admin')
+      navigateTo('/dashboard')
     } else {
       navigateTo('/submit')
     }
