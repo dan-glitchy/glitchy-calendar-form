@@ -1,5 +1,5 @@
-import { db } from '~/server/db'
-import { availabilitySubmissions } from '~/server/db/schema'
+import { db } from '~~/server/db'
+import { availabilitySubmissions } from '~~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const auth = event.context.auth

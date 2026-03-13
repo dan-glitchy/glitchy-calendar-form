@@ -1,4 +1,4 @@
-import { signToken } from '~/server/utils/jwt'
+import { signToken } from '~~/server/utils/jwt'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)

@@ -1,4 +1,4 @@
-import { verifyToken } from '~/server/utils/jwt'
+import { verifyToken } from '~~/server/utils/jwt'
 
 export default defineEventHandler(async (event) => {
   const url = getRequestURL(event)
