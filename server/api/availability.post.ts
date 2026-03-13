@@ -3,7 +3,7 @@ import { db } from '~~/server/db'
 import { availabilitySubmissions } from '~~/server/db/schema'
 import { convertToEST } from '~~/server/utils/timezone'
 
-const VALID_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+const VALID_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/
 
 interface DayEntry {

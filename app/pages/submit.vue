@@ -93,32 +93,28 @@
         {{ authName }} &middot; {{ selectedTimezone }}
       </p>
 
-      <form class="space-y-3" @submit.prevent="handleSubmitAvailability">
-        <div
-          v-for="day in days"
-          :key="day.key"
-          class="flex items-center gap-3 rounded border border-gray-200 px-3 py-2"
-        >
-          <div class="w-20 shrink-0">
-            <span class="text-sm font-medium text-gray-900">{{ day.label }}</span>
-          </div>
-
-          <div class="ml-auto flex items-center gap-2">
+      <form class="space-y-4" @submit.prevent="handleSubmitAvailability">
+        <!-- Weekday availability -->
+        <div class="rounded border border-gray-200 px-3 py-3">
+          <p class="text-sm font-medium text-gray-900 mb-2">Monday &ndash; Friday</p>
+          <div class="flex items-center gap-2">
             <select
-              v-model="day.startTime"
+              v-model="weekdayStart"
               class="h-8 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none"
             >
               <option v-for="t in timeOptions" :key="t" :value="t">{{ formatTime(t) }}</option>
             </select>
             <span class="text-xs text-gray-400">to</span>
             <select
-              v-model="day.endTime"
+              v-model="weekdayEnd"
               class="h-8 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none"
             >
               <option v-for="t in timeOptions" :key="t" :value="t">{{ formatTime(t) }}</option>
             </select>
           </div>
         </div>
+
+        <p class="text-xs text-gray-400">Weekend availability may be required for on-call, incidents, or mandatory work. You'll be contacted separately if needed.</p>
 
         <p v-if="availError" class="text-sm text-red-600">{{ availError }}</p>
         <p v-if="availSuccess" class="text-sm text-green-700">{{ availSuccess }}</p>
@@ -266,20 +262,10 @@ const selectedTimezone = computed(() => {
 })
 
 // --- Step 2: Availability ---
-interface DayState {
-  key: string
-  label: string
-  startTime: string
-  endTime: string
-}
+// Weekday availability (single range for Mon-Fri)
+const weekdayStart = ref('09:00')
+const weekdayEnd = ref('17:00')
 
-const days = reactive<DayState[]>([
-  { key: 'monday', label: 'Mon', startTime: '09:00', endTime: '17:00' },
-  { key: 'tuesday', label: 'Tue', startTime: '09:00', endTime: '17:00' },
-  { key: 'wednesday', label: 'Wed', startTime: '09:00', endTime: '17:00' },
-  { key: 'thursday', label: 'Thu', startTime: '09:00', endTime: '17:00' },
-  { key: 'friday', label: 'Fri', startTime: '09:00', endTime: '17:00' },
-])
 
 const timeOptions: string[] = []
 for (let h = 0; h < 24; h++) {
@@ -305,14 +291,18 @@ async function handleSubmitAvailability() {
   availError.value = ''
   availSuccess.value = ''
 
-  const entries = days.map((d) => ({ day: d.key, startTime: d.startTime, endTime: d.endTime }))
-
-  for (const entry of entries) {
-    if (entry.startTime >= entry.endTime) {
-      availError.value = 'Start time must be before end time for ' + entry.day + '.'
-      return
-    }
+  if (weekdayStart.value >= weekdayEnd.value) {
+    availError.value = 'Weekday start time must be before end time.'
+    return
   }
+
+  // Build entries: same time for all weekdays
+  const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+  const entries = weekdays.map((day) => ({
+    day,
+    startTime: weekdayStart.value,
+    endTime: weekdayEnd.value,
+  }))
 
   availLoading.value = true
   try {
