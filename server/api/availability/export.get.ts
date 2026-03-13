@@ -1,5 +1,5 @@
-import { db } from '~~/server/db'
-import { availabilitySubmissions } from '~~/server/db/schema'
+import { redis } from '~~/server/db'
+import type { AvailabilityEntry } from '~~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const auth = event.context.auth
@@ -7,10 +7,19 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'Admin access required' })
   }
 
-  const rows = db.select().from(availabilitySubmissions).all()
+  const developers = await redis.smembers('developers')
+  const allRows: AvailabilityEntry[] = []
+
+  for (const name of developers) {
+    const data = await redis.get(`availability:${name}`)
+    if (data) {
+      const rows: AvailabilityEntry[] = typeof data === 'string' ? JSON.parse(data) : data
+      allRows.push(...rows)
+    }
+  }
 
   setHeader(event, 'Content-Type', 'application/json')
   setHeader(event, 'Content-Disposition', 'attachment; filename="availability.json"')
 
-  return rows
+  return allRows
 })

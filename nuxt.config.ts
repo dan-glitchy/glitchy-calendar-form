@@ -17,6 +17,5 @@ export default defineNuxtConfig({
     jwtSecret: process.env.JWT_SECRET,
     teamCode: process.env.TEAM_CODE,
     adminCode: process.env.ADMIN_CODE,
-    databaseUrl: process.env.DATABASE_URL || 'file:./db/availability.db',
   },
 })

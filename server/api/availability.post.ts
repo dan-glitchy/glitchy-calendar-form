@@ -1,6 +1,5 @@
-import { eq } from 'drizzle-orm'
-import { db } from '~~/server/db'
-import { availabilitySubmissions } from '~~/server/db/schema'
+import { redis } from '~~/server/db'
+import type { AvailabilityEntry } from '~~/server/db/schema'
 import { convertToEST } from '~~/server/utils/timezone'
 import { collectMetadata } from '~~/server/utils/metadata'
 
@@ -45,13 +44,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Delete previous submissions for this developer
-  db.delete(availabilitySubmissions)
-    .where(eq(availabilitySubmissions.developerName, auth.name))
-    .run()
-
-  // Insert new submissions
-  const rows = entries.map((entry) => {
+  const rows: AvailabilityEntry[] = entries.map((entry) => {
     const { estTime: estStart, estDay } = convertToEST(entry.startTime, entry.day, timezone)
     const { estTime: estEnd } = convertToEST(entry.endTime, entry.day, timezone)
 
@@ -63,19 +56,18 @@ export default defineEventHandler(async (event) => {
       originalTimezone: timezone,
       originalStart: entry.startTime,
       originalEnd: entry.endTime,
+      submittedAt: new Date().toISOString(),
     }
   })
 
-  let firstId: number | null = null
-  for (const row of rows) {
-    const result = db.insert(availabilitySubmissions).values(row).run()
-    if (firstId === null) firstId = Number(result.lastInsertRowid)
-  }
+  // Store availability keyed by developer name (replaces previous)
+  await redis.set(`availability:${auth.name}`, JSON.stringify(rows))
+
+  // Track this developer in the set of all developers
+  await redis.sadd('developers', auth.name)
 
   // Collect submission metadata
-  if (firstId !== null) {
-    collectMetadata(event, 'availability', firstId, auth.name)
-  }
+  collectMetadata(event, 'availability', auth.name, auth.name)
 
   return { success: true, count: rows.length }
 })
