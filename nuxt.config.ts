@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   app: {
     head: {
-      title: 'Glitchy Form',
+      title: 'Glitchy Calendar Form',
     },
   },
   devtools: { enabled: process.env.NODE_ENV !== 'production' },
