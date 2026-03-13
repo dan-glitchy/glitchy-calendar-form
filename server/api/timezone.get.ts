@@ -1,13 +1,23 @@
 export default defineEventHandler(async (event) => {
-  // Try to detect timezone from IP using worldtimeapi
+  // Get client IP from request headers or connection
+  const forwarded = getHeader(event, 'x-forwarded-for')
+  const clientIp = forwarded?.split(',')[0]?.trim() || getRequestIP(event) || ''
+
   try {
-    const response = await fetch('https://worldtimeapi.org/api/ip')
+    // Use ip-api.com — pass client IP if available, otherwise it uses the requesting IP
+    const url = clientIp && clientIp !== '127.0.0.1' && clientIp !== '::1'
+      ? `http://ip-api.com/json/${clientIp}?fields=timezone`
+      : 'http://ip-api.com/json/?fields=timezone'
+
+    const response = await fetch(url)
     if (response.ok) {
       const data = await response.json()
-      return { timezone: data.timezone, source: 'ip' }
+      if (data.timezone) {
+        return { timezone: data.timezone, source: 'ip' }
+      }
     }
   } catch {
-    // Fall through to null
+    // Fall through
   }
 
   return { timezone: null, source: 'unavailable' }
